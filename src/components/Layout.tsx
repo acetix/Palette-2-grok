@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUpRight, Layers, Shield, Sparkles, Wand2 } from 'lucide-react'
 import { BrandMark } from './Brand'
 
@@ -11,9 +12,14 @@ export function TopNav({
 }) {
   const { pathname } = useLocation()
   return (
-    <nav className="navbar navbar-expand-lg topbar">
+    <motion.nav
+      className="navbar navbar-expand-lg topbar"
+      initial={{ y: -12, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="container-fluid app-container px-0">
-        <BrandMark stacked={pathname === '/templates' || pathname === '/calordetel'} />
+        <BrandMark />
         <div className="nav-links">
           {showLinks && (
             <>
@@ -40,7 +46,7 @@ export function TopNav({
           {right}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   )
 }
 
@@ -48,17 +54,20 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="container-fluid app-container footer-inner">
-        <div className="footer-brand">
+        <Link to="/" className="footer-brand">
           <span className="brand-icon" aria-hidden>
             <i />
             <i />
             <i />
             <i />
           </span>
-          <span>
-            Palette<span className="brand-period">.</span>
+          <span className="template-brand-stack footer-brand-stack">
+            <span>
+              Palette<span className="brand-period">.</span>
+            </span>
+            <small>by Acetix</small>
           </span>
-        </div>
+        </Link>
         <p className="footer-made">
           Made with care <b>♥</b>
         </p>
@@ -83,14 +92,24 @@ export function SiteFooter() {
 }
 
 export function Toast({ message, onClose }: { message: string; onClose: () => void }) {
-  if (!message) return null
   return (
-    <div className="toast-note" role="status">
-      <Sparkles size={14} />
-      <span>{message}</span>
-      <button type="button" aria-label="Dismiss" onClick={onClose}>
-        ×
-      </button>
-    </div>
+    <AnimatePresence>
+      {message ? (
+        <motion.div
+          className="toast-note"
+          role="status"
+          initial={{ opacity: 0, y: 12, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          exit={{ opacity: 0, y: 8, x: '-50%' }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Sparkles size={14} />
+          <span>{message}</span>
+          <button type="button" aria-label="Dismiss" onClick={onClose}>
+            ×
+          </button>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   )
 }

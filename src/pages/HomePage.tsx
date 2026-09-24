@@ -31,6 +31,7 @@ import {
   parseSharedPalette,
   rgbToOklch,
   toSwatches,
+  nameColor,
   type ColorFormat,
   type ExportFormat,
   type Swatch,
@@ -195,7 +196,7 @@ export default function HomePage() {
     const next = { ...oklch, [key]: value }
     const hex = oklchToHex(next.l, next.c, next.h)
     setColors((prev) =>
-      prev.map((s, i) => (i === selected ? { hex, name: s.name } : s)),
+      prev.map((s, i) => (i === selected ? { hex, name: nameColor(hex, i) } : s)),
     )
   }
 
@@ -206,7 +207,7 @@ export default function HomePage() {
       setHexDraft(active.hex)
       return
     }
-    setColors((prev) => prev.map((s, i) => (i === selected ? { ...s, hex: n } : s)))
+    setColors((prev) => prev.map((s, i) => (i === selected ? { hex: n, name: nameColor(n, i) } : s)))
   }
 
   async function copyTokens() {
@@ -245,7 +246,7 @@ export default function HomePage() {
     ctx.drawImage(img, 0, 0)
     const px = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data
     const hex = `#${[px[0], px[1], px[2]].map((v) => v.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
-    setColors((prev) => prev.map((s, i) => (i === selected ? { ...s, hex } : s)))
+    setColors((prev) => prev.map((s, i) => (i === selected ? { hex, name: nameColor(hex, i) } : s)))
     notify(`Picked ${hex}`)
     setPicking(false)
   }
@@ -290,7 +291,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell page-enter">
       <TopNav
         right={
           <Link className="btn btn-dark header-button" to="/templates">
@@ -300,6 +301,7 @@ export default function HomePage() {
       />
 
       <main id="top" className="container-fluid app-container main-content">
+        <h1 className="sr-only">Palette — extract colour palettes from images, check contrast, and export CSS tokens</h1>
         <section className="workspace-grid" aria-label="Palette workspace">
           <div className="left-column">
             {!imageSrc && (
@@ -480,9 +482,9 @@ export default function HomePage() {
                   className={`swatch ${selected === i ? 'selected' : ''}`}
                   onClick={() => {
                     setSelected(i)
-                    navigator.clipboard?.writeText(formatColor(c.hex, colorFmt)).then(() => {
+                    void navigator.clipboard?.writeText(formatColor(c.hex, colorFmt)).then(() => {
                       notify(`Copied ${formatColor(c.hex, colorFmt)}`)
-                    })
+                    }).catch(() => notify(formatColor(c.hex, colorFmt)))
                   }}
                   role="listitem"
                 >
@@ -509,7 +511,7 @@ export default function HomePage() {
           </div>
 
           <div className="right-column">
-            <section className="tool-card">
+            <section className="tool-card editor-card">
               <div className="card-head">
                 <div>
                   <span className="step-number">01</span>
@@ -644,7 +646,7 @@ export default function HomePage() {
               <p className="wcag-note">WCAG 2.2 · Normal text needs 4.5:1 for AA.</p>
             </section>
 
-            <section className="tool-card">
+            <section className="tool-card export-card">
               <div className="card-head">
                 <div>
                   <span className="step-number">03</span>
@@ -674,7 +676,7 @@ export default function HomePage() {
                 type="button"
                 className="btn share-button"
                 onClick={copyShare}
-                disabled={!imageSrc && title !== 'Shared palette'}
+                disabled={colors.length === 0}
               >
                 <Share2 size={14} /> Copy share link
               </button>

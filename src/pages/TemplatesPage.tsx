@@ -25,6 +25,7 @@ export default function TemplatesPage() {
   const [pCount, setPCount] = useState(PAGE_SIZE)
   const [gCount, setGCount] = useState(PAGE_SIZE)
   const [loading, setLoading] = useState(false)
+  const loadingRef = useRef(false)
   const [toast, setToast] = useState('')
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -34,22 +35,21 @@ export default function TemplatesPage() {
   }
 
   const loadMore = useCallback(() => {
-    if (loading) return
+    if (loadingRef.current) return
+    loadingRef.current = true
     setLoading(true)
-    // slight delay so spinner is visible
     window.setTimeout(() => {
       if (tab === 'palettes') {
-        const next = generatePaletteBatch(pCount, PAGE_SIZE)
-        setPalettes((prev) => [...prev, ...next])
+        setPalettes((prev) => [...prev, ...generatePaletteBatch(prev.length, PAGE_SIZE)])
         setPCount((c) => c + PAGE_SIZE)
       } else {
-        const next = generateGradientBatch(gCount, PAGE_SIZE)
-        setGradients((prev) => [...prev, ...next])
+        setGradients((prev) => [...prev, ...generateGradientBatch(prev.length, PAGE_SIZE)])
         setGCount((c) => c + PAGE_SIZE)
       }
       setLoading(false)
+      loadingRef.current = false
     }, 280)
-  }, [loading, tab, pCount, gCount])
+  }, [tab])
 
   useEffect(() => {
     const el = sentinelRef.current
@@ -95,7 +95,7 @@ export default function TemplatesPage() {
       : `${String(gradients.length).padStart(2, '0')}+ GRADIENTS`
 
   return (
-    <div className="templates-page">
+    <div className="templates-page page-enter">
       <TopNav
         right={
           <div className="nav-actions">

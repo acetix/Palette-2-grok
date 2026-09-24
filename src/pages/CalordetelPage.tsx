@@ -122,7 +122,7 @@ export default function CalordetelPage() {
     return { background: gradientCssValue({ type: gType, angle, stops }) }
   }, [mode, gType, angle, stops])
 
-  // Keep URL shareable (replace, no history spam)
+  // Keep URL shareable (debounced; skip if unchanged)
   useEffect(() => {
     const state = {
       mode,
@@ -133,7 +133,12 @@ export default function CalordetelPage() {
       stops: mode === 'gradient' ? stops : undefined,
     }
     const s = encodeCalorState(state)
-    setSearchParams({ s }, { replace: true })
+    const id = window.setTimeout(() => {
+      const current = new URLSearchParams(window.location.search).get('s')
+      if (current === s) return
+      setSearchParams({ s }, { replace: true })
+    }, 200)
+    return () => window.clearTimeout(id)
   }, [mode, name, colors, gType, angle, stops, setSearchParams])
 
   function updateColor(i: number, raw: string) {
@@ -227,7 +232,7 @@ export default function CalordetelPage() {
   }
 
   return (
-    <div className="calor-page">
+    <div className="calor-page page-enter">
       <TopNav
         right={
           <div className="nav-actions">
