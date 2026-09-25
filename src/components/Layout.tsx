@@ -30,7 +30,7 @@ export function TopNav({
                 to="/templates"
                 className={`nav-text ${pathname === '/templates' ? 'active' : ''}`}
               >
-                Templates
+                c.Templates
               </Link>
               <Link
                 to="/calordetel"

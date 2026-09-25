@@ -287,3 +287,92 @@ html{scroll-behavior:smooth}
   .page-enter,.brand-icon i,.preset-card img,.source-image{animation:none!important;transition:none!important}
   html{scroll-behavior:auto}
 }
+
+/* privacy chip inside drop box */
+.empty-dropzone{justify-content:center;gap:10px;padding:18px 16px 20px}
+.dropzone-privacy.in-dropzone{
+  position:absolute;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  margin:0!important;
+  width:max-content;
+  max-width:calc(100% - 24px);
+  z-index:2;
+  pointer-events:none;
+  animation:chip-in .5s cubic-bezier(.22,1,.36,1) both;
+}
+.empty-dropzone .dropzone-icon{margin-top:28px}
+@keyframes chip-in{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* animation upgrade v2 */
+.page-enter{animation:page-in .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes page-in{
+  from{opacity:0;transform:translateY(14px) scale(.992);filter:blur(2px)}
+  to{opacity:1;transform:none;filter:none}
+}
+.workspace-grid > *{animation:rise-in .55s cubic-bezier(.16,1,.3,1) both}
+.workspace-grid > *:nth-child(1){animation-delay:.04s}
+.workspace-grid > *:nth-child(2){animation-delay:.12s}
+@keyframes rise-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.swatch{animation:swatch-in .4s cubic-bezier(.16,1,.3,1) both}
+.swatch:nth-child(1){animation-delay:.02s}
+.swatch:nth-child(2){animation-delay:.05s}
+.swatch:nth-child(3){animation-delay:.08s}
+.swatch:nth-child(4){animation-delay:.11s}
+.swatch:nth-child(5){animation-delay:.14s}
+.swatch:nth-child(6){animation-delay:.17s}
+.swatch:nth-child(7){animation-delay:.2s}
+.swatch:nth-child(8){animation-delay:.23s}
+.swatch:nth-child(9){animation-delay:.26s}
+.swatch:nth-child(10){animation-delay:.29s}
+.swatch:nth-child(11){animation-delay:.32s}
+.swatch:nth-child(12){animation-delay:.35s}
+@keyframes swatch-in{from{opacity:0;transform:translateY(8px) scale(.92)}to{opacity:1;transform:none}}
+.preset-card{animation:fade-up .45s cubic-bezier(.16,1,.3,1) both}
+.preset-card:nth-child(1){animation-delay:.02s}
+.preset-card:nth-child(2){animation-delay:.05s}
+.preset-card:nth-child(3){animation-delay:.08s}
+.preset-card:nth-child(4){animation-delay:.11s}
+.preset-card:nth-child(5){animation-delay:.14s}
+.preset-card:nth-child(6){animation-delay:.17s}
+.preset-card:nth-child(7){animation-delay:.2s}
+.preset-card:nth-child(8){animation-delay:.23s}
+.preset-card:nth-child(9){animation-delay:.26s}
+.preset-card:nth-child(10){animation-delay:.29s}
+@keyframes fade-up{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.template-card,.gradient-card{animation:card-pop .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes card-pop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.tool-card{animation:rise-in .5s cubic-bezier(.16,1,.3,1) both}
+.editor-card{animation-delay:.08s}
+.contrast-card{animation-delay:.14s}
+.export-card{animation-delay:.2s}
+.empty-dropzone .dropzone-icon{
+  animation:float-y 2.8s ease-in-out infinite;
+}
+@keyframes float-y{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.empty-dropzone:hover .dropzone-icon{animation:none;transform:translateY(-2px) scale(1.05);background:#f4dfd5}
+.header-button{position:relative;overflow:hidden}
+.header-button::after{
+  content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,.18) 50%,transparent 80%);
+  transform:translateX(-120%);transition:transform .55s ease
+}
+.header-button:hover::after{transform:translateX(120%)}
+.topbar{backdrop-filter:blur(8px);background:#f8f7f3f2!important;transition:box-shadow .3s ease}
+.topbar.scrolled,.topbar{box-shadow:0 1px 0 #e9e7df}
+.nav-text{position:relative}
+.nav-text::after{
+  content:"";position:absolute;left:10px;right:10px;bottom:4px;height:1.5px;border-radius:2px;
+  background:#d46c4d;transform:scaleX(0);transform-origin:left;transition:transform .28s cubic-bezier(.16,1,.3,1)
+}
+.nav-text:hover::after,.nav-text.active::after{transform:scaleX(1)}
+.calor-preview-stage,.contrast-preview,.template-swatches,.gradient-preview{
+  transition:background .45s cubic-bezier(.16,1,.3,1),box-shadow .3s ease,transform .3s ease
+}
+.swatch:hover .swatch-color{transform:translateY(-4px) scale(1.03)!important;box-shadow:0 8px 18px #00000018}
+.toast-note{box-shadow:0 12px 40px #00000033!important}
+@media (prefers-reduced-motion: reduce){
+  .swatch,.preset-card,.template-card,.gradient-card,.tool-card,.workspace-grid > *,.dropzone-privacy.in-dropzone,.empty-dropzone .dropzone-icon{
+    animation:none!important
+  }
+}

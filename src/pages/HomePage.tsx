@@ -295,7 +295,7 @@ export default function HomePage() {
       <TopNav
         right={
           <Link className="btn btn-dark header-button" to="/templates">
-            Templates <ArrowUpRight size={14} />
+            c.Templates <ArrowUpRight size={14} />
           </Link>
         }
       />
@@ -304,12 +304,6 @@ export default function HomePage() {
         <h1 className="sr-only">Palette — extract colour palettes from images, check contrast, and export CSS tokens</h1>
         <section className="workspace-grid" aria-label="Palette workspace">
           <div className="left-column">
-            {!imageSrc && (
-              <div className="dropzone-privacy">
-                <Shield size={14} /> Images stay on your device
-              </div>
-            )}
-
             <div
               className={`image-card ${!imageSrc ? 'empty-image-card' : ''} ${dragging ? 'is-dragging' : ''}`}
               onDragOver={(e) => {
@@ -373,6 +367,9 @@ export default function HomePage() {
                   className="empty-dropzone"
                   onClick={() => fileRef.current?.click()}
                 >
+                  <span className="dropzone-privacy in-dropzone">
+                    <Shield size={13} /> Images stay on your device
+                  </span>
                   <span className="dropzone-icon">
                     <ImagePlus size={18} />
                   </span>
