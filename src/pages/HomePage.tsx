@@ -91,6 +91,12 @@ export default function HomePage() {
   }, [history])
 
   useEffect(() => {
+    if (selected > colors.length - 1) setSelected(Math.max(0, colors.length - 1))
+    if (textIdx > colors.length - 1) setTextIdx(Math.max(0, colors.length - 1))
+    if (bgIdx > colors.length - 1) setBgIdx(Math.min(2, Math.max(0, colors.length - 1)))
+  }, [colors.length, selected, textIdx, bgIdx])
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {
         e.preventDefault()
@@ -101,15 +107,18 @@ export default function HomePage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const active = colors[selected] || colors[0]
+  const safeSelected = Math.min(selected, Math.max(0, colors.length - 1))
+  const active = colors[safeSelected] || colors[0] || { hex: '#888888', name: 'Grey' }
   const oklch = useMemo(() => {
     const [r, g, b] = hexToRgb(active.hex)
     return rgbToOklch(r, g, b)
   }, [active])
 
+  const safeTextIdx = Math.min(textIdx, Math.max(0, colors.length - 1))
+  const safeBgIdx = Math.min(bgIdx, Math.max(0, colors.length - 1))
   const ratio = useMemo(
-    () => contrastRatio(colors[textIdx]?.hex || '#fff', colors[bgIdx]?.hex || '#111'),
-    [colors, textIdx, bgIdx],
+    () => contrastRatio(colors[safeTextIdx]?.hex || '#fff', colors[safeBgIdx]?.hex || '#111'),
+    [colors, safeTextIdx, safeBgIdx],
   )
 
   const tokens = useMemo(() => exportTokens(colors, exportFmt), [colors, exportFmt])
@@ -196,7 +205,7 @@ export default function HomePage() {
     const next = { ...oklch, [key]: value }
     const hex = oklchToHex(next.l, next.c, next.h)
     setColors((prev) =>
-      prev.map((s, i) => (i === selected ? { hex, name: nameColor(hex, i) } : s)),
+      prev.map((s, i) => (i === safeSelected ? { hex, name: nameColor(hex, i) } : s)),
     )
   }
 
@@ -207,7 +216,7 @@ export default function HomePage() {
       setHexDraft(active.hex)
       return
     }
-    setColors((prev) => prev.map((s, i) => (i === selected ? { hex: n, name: nameColor(n, i) } : s)))
+    setColors((prev) => prev.map((s, i) => (i === safeSelected ? { hex: n, name: nameColor(n, i) } : s)))
   }
 
   async function copyTokens() {
@@ -246,7 +255,7 @@ export default function HomePage() {
     ctx.drawImage(img, 0, 0)
     const px = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data
     const hex = `#${[px[0], px[1], px[2]].map((v) => v.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
-    setColors((prev) => prev.map((s, i) => (i === selected ? { hex, name: nameColor(hex, i) } : s)))
+    setColors((prev) => prev.map((s, i) => (i === safeSelected ? { hex, name: nameColor(hex, i) } : s)))
     notify(`Picked ${hex}`)
     setPicking(false)
   }
@@ -476,7 +485,7 @@ export default function HomePage() {
                 <button
                   key={`${c.hex}-${i}`}
                   type="button"
-                  className={`swatch ${selected === i ? 'selected' : ''}`}
+                  className={`swatch ${safeSelected === i ? 'selected' : ''}`}
                   onClick={() => {
                     setSelected(i)
                     void navigator.clipboard?.writeText(formatColor(c.hex, colorFmt)).then(() => {
@@ -585,10 +594,10 @@ export default function HomePage() {
                 <div className="pair-picker">
                   <label>TEXT</label>
                   <div className="picker-wrap">
-                    <i style={{ background: colors[textIdx]?.hex }} />
+                    <i style={{ background: colors[safeTextIdx]?.hex }} />
                     <select
                       aria-label="Text colour"
-                      value={textIdx}
+                      value={safeTextIdx}
                       onChange={(e) => setTextIdx(+e.target.value)}
                     >
                       {colors.map((c, i) => (
@@ -604,10 +613,10 @@ export default function HomePage() {
                 <div className="pair-picker">
                   <label>BACKGROUND</label>
                   <div className="picker-wrap">
-                    <i style={{ background: colors[bgIdx]?.hex }} />
+                    <i style={{ background: colors[safeBgIdx]?.hex }} />
                     <select
                       aria-label="Background colour"
-                      value={bgIdx}
+                      value={safeBgIdx}
                       onChange={(e) => setBgIdx(+e.target.value)}
                     >
                       {colors.map((c, i) => (
@@ -622,7 +631,7 @@ export default function HomePage() {
               </div>
               <div
                 className="contrast-preview"
-                style={{ color: colors[textIdx]?.hex, background: colors[bgIdx]?.hex }}
+                style={{ color: colors[safeTextIdx]?.hex, background: colors[safeBgIdx]?.hex }}
               >
                 <span>Aa</span>
                 <small>Sample text preview</small>
@@ -779,9 +788,17 @@ export default function HomePage() {
               photos, no tracking of your palettes. Crafted by acetix for designers who care about
               both beauty and privacy.
             </p>
-            <Link to="/privacy">
-              Read the privacy note <ArrowUpRight size={12} />
-            </Link>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
+              <Link to="/privacy">
+                Read the privacy note <ArrowUpRight size={12} />
+              </Link>
+              <a href="https://acetix.xyz/about" target="_blank" rel="noreferrer">
+                About acetix <ArrowUpRight size={12} />
+              </a>
+              <a href="https://acetix.xyz/contact" target="_blank" rel="noreferrer">
+                Contact <ArrowUpRight size={12} />
+              </a>
+            </div>
           </div>
           <div className="about-side-note">
             LOCAL

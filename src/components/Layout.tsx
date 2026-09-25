@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpRight, Layers, Shield, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowUpRight, Shield, Sparkles } from 'lucide-react'
 import { BrandMark } from './Brand'
 
 export function TopNav({
@@ -11,6 +11,9 @@ export function TopNav({
   showLinks?: boolean
 }) {
   const { pathname } = useLocation()
+  // Avoid a second Templates control when the page already passes a c.Templates CTA
+  const hasTemplatesCta = pathname === '/'
+
   return (
     <motion.nav
       className="navbar navbar-expand-lg topbar"
@@ -26,18 +29,36 @@ export function TopNav({
               <Link to="/" className={`nav-text ${pathname === '/' ? 'active' : ''}`}>
                 Workspace
               </Link>
-              <Link
-                to="/templates"
-                className={`nav-text ${pathname === '/templates' ? 'active' : ''}`}
-              >
-                c.Templates
-              </Link>
+              {!hasTemplatesCta && (
+                <Link
+                  to="/templates"
+                  className={`nav-text ${pathname === '/templates' ? 'active' : ''}`}
+                >
+                  c.Templates
+                </Link>
+              )}
               <Link
                 to="/calordetel"
                 className={`nav-text ${pathname === '/calordetel' ? 'active' : ''}`}
               >
                 Calordetel
               </Link>
+              <a
+                className="nav-text"
+                href="https://acetix.xyz/about"
+                target="_blank"
+                rel="noreferrer"
+              >
+                About
+              </a>
+              <a
+                className="nav-text"
+                href="https://acetix.xyz/contact"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Contact
+              </a>
               <span className="privacy-pill">
                 <Shield size={13} /> Private by design
               </span>
@@ -73,12 +94,14 @@ export function SiteFooter() {
         </p>
         <div className="footer-links">
           <Link to="/privacy">Privacy</Link>
-          <Link to="/templates">
-            <Layers size={12} /> Templates
-          </Link>
-          <Link to="/calordetel">
-            <Wand2 size={12} /> Calordetel
-          </Link>
+          <a href="https://acetix.xyz/about" target="_blank" rel="noreferrer">
+            About
+          </a>
+          <a href="https://acetix.xyz/contact" target="_blank" rel="noreferrer">
+            Contact
+          </a>
+          <Link to="/templates">c.Templates</Link>
+          <Link to="/calordetel">Calordetel</Link>
           <a href="https://acetix.xyz" target="_blank" rel="noreferrer">
             acetix <ArrowUpRight size={12} />
           </a>

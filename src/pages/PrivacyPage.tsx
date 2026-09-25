@@ -60,8 +60,20 @@ export default function PrivacyPage() {
         </p>
         <h2>Contact</h2>
         <p>
-          Questions about this notice? Write to{' '}
+          Questions about this notice? Reach us at{' '}
+          <a href="https://acetix.xyz/contact" target="_blank" rel="noreferrer">
+            acetix.xyz/contact
+          </a>
+          {' '}or write to{' '}
           <a href="mailto:acetix.team@gmail.com">acetix.team@gmail.com</a>.
+        </p>
+        <h2>About</h2>
+        <p>
+          Learn more about acetix at{' '}
+          <a href="https://acetix.xyz/about" target="_blank" rel="noreferrer">
+            acetix.xyz/about
+          </a>
+          .
         </p>
         <Link className="btn btn-dark privacy-home" to="/">
           Back to your palette <ArrowUpRight size={15} />
