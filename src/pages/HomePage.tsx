@@ -279,23 +279,114 @@ export default function HomePage() {
     }
   }
 
+  function fileBaseName() {
+    return (title || 'palette-image').replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '') || 'palette-image'
+  }
+
+  function loadSourceImage(): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('load failed'))
+      img.src = imageSrc
+    })
+  }
+
   async function downloadSvg() {
-    if (!imageSrc) return
+    if (!imageSrc) {
+      notify('Drop an image first.')
+      return
+    }
     try {
-      const res = await fetch(imageSrc)
-      const blob = await res.blob()
-      const reader = new FileReader()
-      reader.onload = () => {
-        const dataUrl = reader.result as string
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><image href="${dataUrl}" width="800" height="600" preserveAspectRatio="xMidYMid slice"/></svg>`
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
-        a.download = `${(title || 'palette').replace(/\s+/g, '-').toLowerCase()}.svg`
-        a.click()
-      }
-      reader.readAsDataURL(blob)
+      const img = await loadSourceImage()
+      const w = img.naturalWidth || 800
+      const h = img.naturalHeight || 600
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('canvas')
+      ctx.drawImage(img, 0, 0)
+      const dataUrl = canvas.toDataURL('image/png')
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }))
+      a.download = `${fileBaseName()}.svg`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.setTimeout(() => URL.revokeObjectURL(a.href), 1500)
+      notify('SVG download started.')
     } catch {
       notify('Could not convert this image to SVG.')
+    }
+  }
+
+  async function downloadWebp() {
+    if (!imageSrc) {
+      notify('Drop an image first.')
+      return
+    }
+    try {
+      const img = await loadSourceImage()
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth || 1
+      canvas.height = img.naturalHeight || 1
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('canvas')
+      ctx.drawImage(img, 0, 0)
+      const blob: Blob | null = await new Promise((resolve) =>
+        canvas.toBlob((b) => resolve(b), 'image/webp', 0.92),
+      )
+      if (!blob) {
+        // Fallback: some browsers may not encode webp — use data URL
+        const dataUrl = canvas.toDataURL('image/webp', 0.92)
+        if (!dataUrl.startsWith('data:image/webp')) {
+          notify('WebP is not supported in this browser. Try Chrome or Edge.')
+          return
+        }
+        const a = document.createElement('a')
+        a.href = dataUrl
+        a.download = `${fileBaseName()}.webp`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        notify('WebP download started.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `${fileBaseName()}.webp`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.setTimeout(() => URL.revokeObjectURL(a.href), 1500)
+      notify('WebP download started.')
+    } catch {
+      notify('Could not convert this image to WebP.')
+    }
+  }
+
+  async function openImbb() {
+    if (!imageSrc) {
+      notify('Drop an image first.')
+      return
+    }
+    // Open free image host in a new tab (does not leave the palette app)
+    // Prefer Pixelshift (Acetix) which handles WebP + hosting helpers.
+    try {
+      const win = window.open('https://pixelshift.acetix.xyz/', '_blank', 'noopener,noreferrer')
+      if (!win) {
+        // Popup blocked — navigate-safe fallback copy
+        await navigator.clipboard?.writeText('https://pixelshift.acetix.xyz/')
+        notify('Popup blocked. Link copied — paste it in a new tab.')
+        return
+      }
+      notify('Opened Pixelshift / ImBB tools in a new tab.')
+    } catch {
+      window.open('https://imgbb.com/upload', '_blank', 'noopener,noreferrer')
+      notify('Opened image upload in a new tab.')
     }
   }
 
@@ -303,7 +394,7 @@ export default function HomePage() {
     <div className="app-shell page-enter">
       <TopNav
         right={
-          <Link className="btn btn-dark header-button" to="/templates">
+          <Link className="btn btn-dark header-button c-templates-glow" to="/templates">
             c.Templates <ArrowUpRight size={14} />
           </Link>
         }
@@ -403,12 +494,36 @@ export default function HomePage() {
                   </>
                 )}
               </span>
-              <span>
-                <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()} style={{ padding: '6px 10px', fontSize: 10 }}>
+            </div>
+
+            {imageSrc && (
+              <div className="image-actions" aria-label="Image conversion tools">
+                <button
+                  type="button"
+                  className="btn image-tool-primary"
+                  title="Download this image as SVG"
+                  onClick={() => void downloadSvg()}
+                >
+                  <Download size={14} /> Convert SVG
+                </button>
+                <button
+                  type="button"
+                  className="btn image-tool-secondary"
+                  title="Download this image as WebP"
+                  onClick={() => void downloadWebp()}
+                >
+                  Convert WebP <ArrowUpRight size={13} />
+                </button>
+                <button
+                  type="button"
+                  className="btn image-tool-secondary"
+                  title="Open ImBB / Pixelshift upload tools"
+                  onClick={() => void openImbb()}
+                >
                   Upload ImBB <ArrowUpRight size={13} />
                 </button>
-              </span>
-            </div>
+              </div>
+            )}
 
             <div className="preset-heading">
               <span>START WITH A LITTLE INSPIRATION</span>

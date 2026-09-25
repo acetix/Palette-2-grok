@@ -32,7 +32,7 @@ export function TopNav({
               {!hasTemplatesCta && (
                 <Link
                   to="/templates"
-                  className={`nav-text ${pathname === '/templates' ? 'active' : ''}`}
+                  className={`nav-text c-templates-nav-glow ${pathname === '/templates' ? 'active' : ''}`}
                 >
                   c.Templates
                 </Link>
