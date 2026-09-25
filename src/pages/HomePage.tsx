@@ -19,7 +19,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { SiteFooter, Toast, TopNav , ScrollTopButton} from '../components/Layout'
+import {SiteFooter, Toast, TopNav} from '../components/Layout'
 import {
   contrastRatio,
   DEFAULT_PALETTE,
@@ -896,7 +896,6 @@ export default function HomePage() {
       </main>
 
       <SiteFooter />
-      <ScrollTopButton />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
   )

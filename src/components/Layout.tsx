@@ -5,14 +5,20 @@ import { ArrowUp, ArrowUpRight, Shield, Sparkles } from 'lucide-react'
 import { BrandMark } from './Brand'
 
 export function ScrollTopButton() {
+  const { pathname } = useLocation()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 320)
+    const onScroll = () => setVisible(window.scrollY > 120)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [pathname])
+
+  // Reset visibility when route changes
+  useEffect(() => {
+    setVisible(window.scrollY > 120)
+  }, [pathname])
 
   return (
     <AnimatePresence>
@@ -22,13 +28,19 @@ export function ScrollTopButton() {
           className="scroll-top-btn"
           aria-label="Back to top"
           title="Back to top"
-          initial={{ opacity: 0, y: 12, scale: 0.9 }}
+          initial={{ opacity: 0, y: 10, scale: 0.92 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.92 }}
-          transition={{ duration: 0.25 }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          transition={{ duration: 0.22 }}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })
+            document.body.scrollTo({ top: 0, behavior: 'smooth' })
+            document.getElementById('top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
         >
-          <ArrowUp size={18} />
+          <ArrowUp size={18} strokeWidth={2.5} />
+          <span className="scroll-top-label">Up</span>
         </motion.button>
       ) : null}
     </AnimatePresence>

@@ -1,23 +1,59 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Search, Sparkles, Wand2 } from 'lucide-react'
-import { SiteFooter, Toast, TopNav , ScrollTopButton} from '../components/Layout'
+import { ArrowUpRight, Bookmark, BookmarkCheck, Search, Sparkles, Trash2, Wand2 } from 'lucide-react'
+import {SiteFooter, Toast, TopNav} from '../components/Layout'
 import {
   generateGradient,
   gradientCssValue,
+  type GradientStop,
   type GradientTemplate,
 } from '../lib/gradients'
 import { generatePaletteTemplate, type PaletteTemplate } from '../lib/templates'
 
 const PAGE_SIZE = 24
+const SAVED_KEY = 'paletto-saved-templates'
 
-type KindFilter = 'all' | 'palette' | 'gradient'
+type KindFilter = 'all' | 'palette' | 'gradient' | 'saved'
 type SortMode = 'default' | 'name-asc' | 'name-desc' | 'colors-asc' | 'colors-desc'
 type GradTypeFilter = 'all' | 'linear' | 'radial' | 'conic'
 
 type FeedItem =
   | { kind: 'palette'; data: PaletteTemplate; index: number }
   | { kind: 'gradient'; data: GradientTemplate; index: number }
+
+type SavedItem =
+  | {
+      id: string
+      kind: 'palette'
+      name: string
+      mood: string
+      colors: string[]
+      savedAt: number
+    }
+  | {
+      id: string
+      kind: 'gradient'
+      name: string
+      mood: string
+      type: GradientTemplate['type']
+      angle: number
+      stops: GradientStop[]
+      savedAt: number
+    }
+
+function loadSaved(): SavedItem[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]')
+    return Array.isArray(raw) ? raw : []
+  } catch {
+    return []
+  }
+}
+
+function saveKeyFor(item: FeedItem): string {
+  if (item.kind === 'palette') return `palette:${item.data.id}`
+  return `gradient:${item.data.id}`
+}
 
 const MOOD_FILTERS = [
   { id: 'all', label: 'All moods' },
@@ -32,7 +68,7 @@ const MOOD_FILTERS = [
   { id: 'dreamy', label: 'Dreamy' },
 ] as const
 
-function buildBatch(start: number, count: number, kind: KindFilter): FeedItem[] {
+function buildBatch(start: number, count: number, kind: Exclude<KindFilter, "saved">): FeedItem[] {
   const items: FeedItem[] = []
   for (let i = 0; i < count; i++) {
     const n = start + i
@@ -63,6 +99,7 @@ export default function TemplatesPage() {
   const [sortMode, setSortMode] = useState<SortMode>('default')
   const [query, setQuery] = useState('')
   const [items, setItems] = useState<FeedItem[]>(() => buildBatch(0, PAGE_SIZE, 'all'))
+  const [saved, setSaved] = useState<SavedItem[]>(() => loadSaved())
   const [loading, setLoading] = useState(false)
   const loadingRef = useRef(false)
   const [toast, setToast] = useState('')
@@ -74,26 +111,87 @@ export default function TemplatesPage() {
     window.setTimeout(() => setToast(''), 2200)
   }
 
+  useEffect(() => {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(saved.slice(0, 60)))
+  }, [saved])
+
+  const savedIds = useMemo(() => new Set(saved.map((s) => s.id)), [saved])
+
+  function toggleSavePalette(t: PaletteTemplate) {
+    const id = `palette:${t.id}`
+    setSaved((prev) => {
+      if (prev.some((s) => s.id === id)) {
+        notify('Removed from saved.')
+        return prev.filter((s) => s.id !== id)
+      }
+      notify('Template saved in this browser.')
+      return [
+        {
+          id,
+          kind: 'palette' as const,
+          name: t.name,
+          mood: t.mood,
+          colors: t.colors,
+          savedAt: Date.now(),
+        },
+        ...prev,
+      ].slice(0, 60)
+    })
+  }
+
+  function toggleSaveGradient(g: GradientTemplate) {
+    const id = `gradient:${g.id}`
+    setSaved((prev) => {
+      if (prev.some((s) => s.id === id)) {
+        notify('Removed from saved.')
+        return prev.filter((s) => s.id !== id)
+      }
+      notify('Gradient saved in this browser.')
+      return [
+        {
+          id,
+          kind: 'gradient' as const,
+          name: g.name,
+          mood: g.mood,
+          type: g.type,
+          angle: g.angle,
+          stops: g.stops,
+          savedAt: Date.now(),
+        },
+        ...prev,
+      ].slice(0, 60)
+    })
+  }
+
+  function removeSaved(id: string) {
+    setSaved((prev) => prev.filter((s) => s.id !== id))
+    notify('Removed from saved.')
+  }
+
   // Reset feed when primary kind filter changes so infinite scroll stays correct
   useEffect(() => {
+    if (kindFilter === 'saved') return
     feedKey.current += 1
-    setItems(buildBatch(0, PAGE_SIZE, kindFilter))
+    const batchKind = kindFilter === 'all' ? 'all' : kindFilter
+    setItems(buildBatch(0, PAGE_SIZE, batchKind))
     loadingRef.current = false
     setLoading(false)
   }, [kindFilter])
 
   const loadMore = useCallback(() => {
+    if (kindFilter === 'saved') return
     if (loadingRef.current) return
     loadingRef.current = true
     setLoading(true)
     const key = feedKey.current
+    const batchKind = kindFilter === 'all' ? 'all' : kindFilter
     window.setTimeout(() => {
       if (key !== feedKey.current) {
         loadingRef.current = false
         setLoading(false)
         return
       }
-      setItems((prev) => [...prev, ...buildBatch(prev.length, PAGE_SIZE, kindFilter)])
+      setItems((prev) => [...prev, ...buildBatch(prev.length, PAGE_SIZE, batchKind)])
       setLoading(false)
       loadingRef.current = false
     }, 280)
@@ -115,6 +213,39 @@ export default function TemplatesPage() {
   // If filters leave too few visible items, keep loading
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
+
+    if (kindFilter === 'saved') {
+      let list: FeedItem[] = saved.map((s) => {
+        if (s.kind === 'palette') {
+          return {
+            kind: 'palette' as const,
+            index: s.savedAt,
+            data: { id: s.id, name: s.name, mood: s.mood, colors: s.colors },
+          }
+        }
+        return {
+          kind: 'gradient' as const,
+          index: s.savedAt,
+          data: {
+            id: s.id,
+            name: s.name,
+            mood: s.mood,
+            type: s.type,
+            angle: s.angle,
+            stops: s.stops,
+          },
+        }
+      })
+      list = list.filter((item) => {
+        if (q && !item.data.name.toLowerCase().includes(q) && !item.data.mood.toLowerCase().includes(q))
+          return false
+        if (!matchesMood(item.data.mood, moodFilter)) return false
+        if (item.kind === 'gradient' && gradType !== 'all' && item.data.type !== gradType) return false
+        return true
+      })
+      return list
+    }
+
     let list = items.filter((item) => {
       if (item.kind === 'palette') {
         if (kindFilter === 'gradient') return false
@@ -144,13 +275,14 @@ export default function TemplatesPage() {
       )
     }
     return list
-  }, [items, kindFilter, moodFilter, gradType, query, sortMode])
+  }, [items, kindFilter, moodFilter, gradType, query, sortMode, saved])
 
   useEffect(() => {
+    if (kindFilter === 'saved') return
     if (filtered.length < 12 && !loadingRef.current && items.length < 400) {
       loadMore()
     }
-  }, [filtered.length, items.length, loadMore])
+  }, [filtered.length, items.length, loadMore, kindFilter])
 
   function openPalette(t: PaletteTemplate) {
     const q = t.colors.map((c) => c.slice(1)).join(',')
@@ -228,6 +360,7 @@ export default function TemplatesPage() {
                   ['all', 'All'],
                   ['palette', 'Templates'],
                   ['gradient', 'Gradients'],
+                  ['saved', `Saved (${saved.length})`],
                 ] as const
               ).map(([id, label]) => (
                 <button
@@ -357,6 +490,27 @@ export default function TemplatesPage() {
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         type="button"
+                        className={savedIds.has(saveKeyFor(item)) ? 'tpl-save-on' : ''}
+                        title={savedIds.has(saveKeyFor(item)) ? 'Unsave template' : 'Save template'}
+                        onClick={() => toggleSavePalette(item.data)}
+                      >
+                        {savedIds.has(saveKeyFor(item)) ? (
+                          <BookmarkCheck size={14} />
+                        ) : (
+                          <Bookmark size={14} />
+                        )}
+                      </button>
+                      {kindFilter === 'saved' && (
+                        <button
+                          type="button"
+                          title="Remove saved"
+                          onClick={() => removeSaved(saveKeyFor(item))}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
                         title="Customize in Calordetel"
                         onClick={() => openPaletteInCalor(item.data)}
                       >
@@ -401,13 +555,36 @@ export default function TemplatesPage() {
                       </span>
                       <h2>{item.data.name}</h2>
                     </div>
-                    <button
-                      type="button"
-                      title="Customize in Calordetel"
-                      onClick={() => openGradientInCalor(item.data)}
-                    >
-                      <Wand2 size={14} />
-                    </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        type="button"
+                        className={savedIds.has(saveKeyFor(item)) ? 'tpl-save-on' : ''}
+                        title={savedIds.has(saveKeyFor(item)) ? 'Unsave gradient' : 'Save gradient'}
+                        onClick={() => toggleSaveGradient(item.data)}
+                      >
+                        {savedIds.has(saveKeyFor(item)) ? (
+                          <BookmarkCheck size={14} />
+                        ) : (
+                          <Bookmark size={14} />
+                        )}
+                      </button>
+                      {kindFilter === 'saved' && (
+                        <button
+                          type="button"
+                          title="Remove saved"
+                          onClick={() => removeSaved(saveKeyFor(item))}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        title="Customize in Calordetel"
+                        onClick={() => openGradientInCalor(item.data)}
+                      >
+                        <Wand2 size={14} />
+                      </button>
+                    </div>
                   </div>
                   <div className="gradient-meta">
                     <span>
@@ -421,19 +598,20 @@ export default function TemplatesPage() {
           </div>
         )}
 
-        <div className="templates-sentinel" ref={sentinelRef}>
-          {loading ? (
-            <>
-              <span className="spin" /> LOADING MORE
-            </>
-          ) : (
-            <>SCROLL FOR ENDLESS COLOUR</>
-          )}
-        </div>
+        {kindFilter !== 'saved' && (
+          <div className="templates-sentinel" ref={sentinelRef}>
+            {loading ? (
+              <>
+                <span className="spin" /> LOADING MORE
+              </>
+            ) : (
+              <>SCROLL FOR ENDLESS COLOUR</>
+            )}
+          </div>
+        )}
       </main>
 
       <SiteFooter />
-      <ScrollTopButton />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
   )

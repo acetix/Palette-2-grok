@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import { BrandMark } from '../components/Brand'
-import { SiteFooter , ScrollTopButton} from '../components/Layout'
+import {SiteFooter} from '../components/Layout'
 
 export default function PrivacyPage() {
   return (
@@ -80,7 +80,6 @@ export default function PrivacyPage() {
         </Link>
       </main>
       <SiteFooter />
-      <ScrollTopButton />
     </div>
   )
 }
