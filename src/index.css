@@ -386,3 +386,68 @@ html{scroll-behavior:smooth}
 @media(max-width:640px){
   .nav-links .nav-text{display:none}
 }
+
+/* mixed feed + calor features */
+.mixed-feed-label{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 18px;font:8px DM Mono,monospace;letter-spacing:1px;color:#a09c92
+}
+.mixed-feed-label>span:first-child,.mixed-feed-label>span:nth-child(3){color:#6e6b64;font-weight:600}
+.mixed-feed-dot{width:4px;height:4px;border-radius:50%;background:#d66d4e}
+.mixed-feed-hint{margin-left:auto;color:#c0bbb0}
+.feed-card{position:relative}
+.feed-kind-badge{
+  position:absolute;z-index:2;top:8px;left:8px;
+  font:7px DM Mono,monospace;letter-spacing:.8px;padding:3px 6px;border-radius:3px;
+  background:#252421cc;color:#fff;backdrop-filter:blur(4px)
+}
+.feed-kind-palette{background:#d66d4ed9}
+.feed-kind-gradient{background:#435bc3d9}
+.mixed-feed-grid .gradient-preview{height:79px}
+.templates-tabs{display:none!important}
+
+.calor-preview-tabs{
+  display:flex;gap:2px;padding:3px;background:#f3f1eb;border:1px solid #eae7df;
+  border-radius:5px;margin-bottom:12px;width:fit-content
+}
+.calor-preview-tabs button{
+  border:0;background:transparent;padding:6px 12px;border-radius:3px;
+  font:600 11px DM Sans,sans-serif;color:#8f8b82;cursor:pointer
+}
+.calor-preview-tabs button.active{background:#fff;color:#d46c4d;box-shadow:0 1px 3px #29251b14}
+.calor-ui-kit{
+  min-height:220px;border-radius:5px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;
+  border:1px solid #eeece6;gap:14px
+}
+.calor-ui-card{border-radius:6px;padding:16px;box-shadow:0 8px 24px #00000014;max-width:280px}
+.calor-ui-card p{font-size:12px;margin:8px 0 12px;line-height:1.45}
+.calor-ui-row{display:flex;height:14px;border-radius:3px;overflow:hidden}
+.calor-ui-row span{flex:1}
+.calor-type-preview{
+  min-height:220px;border-radius:5px;padding:28px 22px;border:1px solid #eeece6;
+  display:flex;flex-direction:column;justify-content:center;gap:8px
+}
+.calor-type-display{font:500 64px/1 Playfair Display,serif;margin:0}
+.calor-type-body{font-size:15px;margin:0;max-width:280px;line-height:1.5}
+.calor-type-meta{font:8px DM Mono,monospace;letter-spacing:1px;opacity:.7;margin:8px 0 0}
+.calor-contrast-mini{margin-top:16px;padding-top:14px;border-top:1px solid #eeece6}
+.calor-contrast-mini h4{font-size:11px;margin:0 0 10px;color:#6e6b64;font-weight:600}
+.calor-contrast-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:11px}
+.calor-contrast-swatch{display:flex;width:36px;height:16px;border-radius:3px;overflow:hidden;border:1px solid #0001}
+.calor-contrast-swatch i{flex:1}
+.calor-contrast-row strong{font:500 11px DM Mono,monospace}
+.calor-contrast-row .pass{color:#71866b}
+.calor-contrast-row .fail{color:#d66d4e}
+.calor-angle-presets{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.calor-angle-presets button{
+  border:1px solid #e7e5de;background:#faf9f6;border-radius:3px;padding:4px 7px;
+  font:8px DM Mono,monospace;color:#8a867e;cursor:pointer
+}
+.calor-angle-presets button.active,.calor-angle-presets button:hover{border-color:#e0b5a3;color:#d66d4e;background:#fff}
+.calor-stop-row-lock{grid-template-columns:28px 1fr 32px 32px!important}
+.calor-stop-row-lock .lock-on{background:#edf2e8;color:#53684c}
+.calor-fmt-switch{margin-bottom:10px}
+.calor-chip{cursor:pointer}
+.calor-chip:hover{background:#efe0d8;border-color:#e0b5a3}
+.calor-actions{display:flex;flex-wrap:wrap;gap:8px}
+.calor-actions .btn{flex:1 1 120px}

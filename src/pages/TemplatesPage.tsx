@@ -1,29 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Layers, Palette, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowUpRight, Sparkles, Wand2 } from 'lucide-react'
 import { SiteFooter, Toast, TopNav } from '../components/Layout'
 import {
-  generateGradientBatch,
+  generateGradient,
   gradientCssValue,
   type GradientTemplate,
 } from '../lib/gradients'
-import {
-  generatePaletteBatch,
-  type PaletteTemplate,
-} from '../lib/templates'
+import { generatePaletteTemplate, type PaletteTemplate } from '../lib/templates'
 
-const PAGE_SIZE = 18
+const PAGE_SIZE = 24
 
-type Tab = 'palettes' | 'gradients'
+type FeedItem =
+  | { kind: 'palette'; data: PaletteTemplate; index: number }
+  | { kind: 'gradient'; data: GradientTemplate; index: number }
+
+function buildBatch(start: number, count: number): FeedItem[] {
+  const items: FeedItem[] = []
+  for (let i = 0; i < count; i++) {
+    const n = start + i
+    // Alternate palette / gradient so both live in one stream
+    if (n % 2 === 0) {
+      const pIdx = Math.floor(n / 2)
+      items.push({ kind: 'palette', data: generatePaletteTemplate(pIdx), index: pIdx })
+    } else {
+      const gIdx = Math.floor(n / 2)
+      items.push({ kind: 'gradient', data: generateGradient(gIdx), index: gIdx })
+    }
+  }
+  return items
+}
 
 export default function TemplatesPage() {
-  const [tab, setTab] = useState<Tab>('palettes')
-  const [palettes, setPalettes] = useState<PaletteTemplate[]>(() => generatePaletteBatch(0, PAGE_SIZE))
-  const [gradients, setGradients] = useState<GradientTemplate[]>(() =>
-    generateGradientBatch(0, PAGE_SIZE),
-  )
-  const [pCount, setPCount] = useState(PAGE_SIZE)
-  const [gCount, setGCount] = useState(PAGE_SIZE)
+  const [items, setItems] = useState<FeedItem[]>(() => buildBatch(0, PAGE_SIZE))
   const [loading, setLoading] = useState(false)
   const loadingRef = useRef(false)
   const [toast, setToast] = useState('')
@@ -39,17 +48,11 @@ export default function TemplatesPage() {
     loadingRef.current = true
     setLoading(true)
     window.setTimeout(() => {
-      if (tab === 'palettes') {
-        setPalettes((prev) => [...prev, ...generatePaletteBatch(prev.length, PAGE_SIZE)])
-        setPCount((c) => c + PAGE_SIZE)
-      } else {
-        setGradients((prev) => [...prev, ...generateGradientBatch(prev.length, PAGE_SIZE)])
-        setGCount((c) => c + PAGE_SIZE)
-      }
+      setItems((prev) => [...prev, ...buildBatch(prev.length, PAGE_SIZE)])
       setLoading(false)
       loadingRef.current = false
     }, 280)
-  }, [tab])
+  }, [])
 
   useEffect(() => {
     const el = sentinelRef.current
@@ -89,17 +92,19 @@ export default function TemplatesPage() {
     window.location.assign(`/calordetel?${params.toString()}`)
   }
 
-  const totalLabel =
-    tab === 'palettes'
-      ? `${String(palettes.length).padStart(2, '0')}+ PALETTES`
-      : `${String(gradients.length).padStart(2, '0')}+ GRADIENTS`
+  const palCount = items.filter((i) => i.kind === 'palette').length
+  const gradCount = items.filter((i) => i.kind === 'gradient').length
 
   return (
     <div className="templates-page page-enter">
       <TopNav
         right={
           <div className="nav-actions">
-            <Link className="btn btn-secondary header-button" to="/calordetel" style={{ background: '#fff', color: '#2d2c29', borderColor: '#e7e5de' }}>
+            <Link
+              className="btn btn-secondary header-button"
+              to="/calordetel"
+              style={{ background: '#fff', color: '#2d2c29', borderColor: '#e7e5de' }}
+            >
               <Wand2 size={14} /> Calordetel
             </Link>
             <Link className="btn btn-dark header-button" to="/">
@@ -121,106 +126,100 @@ export default function TemplatesPage() {
               <em>already in motion.</em>
             </h1>
             <p>
-              Infinite ready-made palettes and gradients — scroll for more, then make them yours in
-              Palette or Calordetel.
+              Colour templates and gradients together in one endless feed — scroll for more, then
+              open them in Palette or Calordetel.
             </p>
           </div>
-          <span className="templates-total">{totalLabel}</span>
+          <span className="templates-total">
+            {String(palCount).padStart(2, '0')} PAL · {String(gradCount).padStart(2, '0')} GRAD
+          </span>
         </div>
 
-        <div className="templates-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'palettes'}
-            className={tab === 'palettes' ? 'active' : ''}
-            onClick={() => setTab('palettes')}
-          >
-            <Palette size={14} /> Color templates
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'gradients'}
-            className={tab === 'gradients' ? 'active' : ''}
-            onClick={() => setTab('gradients')}
-          >
-            <Layers size={14} /> Color gradients
-          </button>
+        <div className="mixed-feed-label">
+          <span>Color templates</span>
+          <span className="mixed-feed-dot" />
+          <span>Color gradients</span>
+          <span className="mixed-feed-hint">ONE FEED · INFINITE SCROLL</span>
         </div>
 
-        {tab === 'palettes' ? (
-          <div className="templates-grid">
-            {palettes.map((t, i) => (
-              <article key={t.id} className="template-card">
-                <div className="template-swatches" aria-label={`${t.name} colours`}>
-                  {t.colors.map((c) => (
+        <div className="templates-grid mixed-feed-grid">
+          {items.map((item, i) =>
+            item.kind === 'palette' ? (
+              <article key={`p-${item.data.id}-${i}`} className="template-card feed-card">
+                <div className="feed-kind-badge feed-kind-palette">TEMPLATE</div>
+                <div className="template-swatches" aria-label={`${item.data.name} colours`}>
+                  {item.data.colors.map((c) => (
                     <span key={c} style={{ backgroundColor: c }} />
                   ))}
                 </div>
                 <div className="template-card-info">
                   <div>
                     <span className="template-index">
-                      {String(i + 1).padStart(2, '0')} · {t.mood}
+                      {String(i + 1).padStart(2, '0')} · {item.data.mood}
                     </span>
-                    <h2>{t.name}</h2>
+                    <h2>{item.data.name}</h2>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button
                       type="button"
                       title="Customize in Calordetel"
-                      onClick={() => openPaletteInCalor(t)}
+                      onClick={() => openPaletteInCalor(item.data)}
                     >
                       <Wand2 size={14} />
                     </button>
-                    <button type="button" title="Open in Palette" onClick={() => openPalette(t)}>
+                    <button
+                      type="button"
+                      title="Open in Palette"
+                      onClick={() => openPalette(item.data)}
+                    >
                       <ArrowUpRight size={14} />
                     </button>
                   </div>
                 </div>
                 <div className="template-hexes">
-                  {t.colors.map((c) => (
+                  {item.data.colors.map((c) => (
                     <span key={c}>{c}</span>
                   ))}
                 </div>
               </article>
-            ))}
-          </div>
-        ) : (
-          <div className="gradients-grid">
-            {gradients.map((g, i) => (
-              <article key={g.id} className="gradient-card">
+            ) : (
+              <article key={`g-${item.data.id}-${i}`} className="gradient-card feed-card">
+                <div className="feed-kind-badge feed-kind-gradient">GRADIENT</div>
                 <div
                   className="gradient-preview"
-                  style={{ background: gradientCssValue(g) }}
-                  aria-label={`${g.name} gradient`}
+                  style={{ background: gradientCssValue(item.data) }}
+                  aria-label={`${item.data.name} gradient`}
                 />
                 <div className="gradient-stops">
-                  {g.stops.map((s) => (
+                  {item.data.stops.map((s) => (
                     <span key={s.color + s.position} style={{ background: s.color }} />
                   ))}
                 </div>
                 <div className="gradient-card-info">
                   <div>
                     <span className="template-index">
-                      {String(i + 1).padStart(2, '0')} · {g.mood}
+                      {String(i + 1).padStart(2, '0')} · {item.data.mood}
                     </span>
-                    <h2>{g.name}</h2>
+                    <h2>{item.data.name}</h2>
                   </div>
-                  <button type="button" title="Customize in Calordetel" onClick={() => openGradientInCalor(g)}>
+                  <button
+                    type="button"
+                    title="Customize in Calordetel"
+                    onClick={() => openGradientInCalor(item.data)}
+                  >
                     <Wand2 size={14} />
                   </button>
                 </div>
                 <div className="gradient-meta">
                   <span>
-                    {g.type} · {g.angle}°
+                    {item.data.type} · {item.data.angle}°
                   </span>
-                  <span>{g.stops.length} stops</span>
+                  <span>{item.data.stops.length} stops</span>
                 </div>
               </article>
-            ))}
-          </div>
-        )}
+            ),
+          )}
+        </div>
 
         <div className="templates-sentinel" ref={sentinelRef}>
           {loading ? (
