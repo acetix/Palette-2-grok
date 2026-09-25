@@ -16,7 +16,7 @@ import {
   Sparkles,
   Wand2,
 } from 'lucide-react'
-import { SiteFooter, Toast, TopNav } from '../components/Layout'
+import { SiteFooter, Toast, TopNav , ScrollTopButton} from '../components/Layout'
 import {
   decodeCalorState,
   encodeCalorState,
@@ -790,6 +790,7 @@ export default function CalordetelPage() {
       </main>
 
       <SiteFooter />
+      <ScrollTopButton />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
   )

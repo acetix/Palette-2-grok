@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Search, Sparkles, Wand2 } from 'lucide-react'
-import { SiteFooter, Toast, TopNav } from '../components/Layout'
+import { SiteFooter, Toast, TopNav , ScrollTopButton} from '../components/Layout'
 import {
   generateGradient,
   gradientCssValue,
@@ -433,6 +433,7 @@ export default function TemplatesPage() {
       </main>
 
       <SiteFooter />
+      <ScrollTopButton />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
   )

@@ -19,7 +19,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { SiteFooter, Toast, TopNav } from '../components/Layout'
+import { SiteFooter, Toast, TopNav , ScrollTopButton} from '../components/Layout'
 import {
   contrastRatio,
   DEFAULT_PALETTE,
@@ -132,6 +132,15 @@ export default function HomePage() {
     setHexDraft(active.hex)
   }, [active.hex])
 
+  function scrollToPalette() {
+    window.setTimeout(() => {
+      document.getElementById('palette-colours')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }, 120)
+  }
+
   function loadFromUrl(src: string, name: string) {
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -143,6 +152,7 @@ export default function HomePage() {
       setTextIdx(0)
       setBgIdx(Math.min(2, swatchCount - 1))
       notify(`Palette made from ${name}.`)
+      scrollToPalette()
     }
     img.onerror = () => notify('Could not load that image. Please try another.')
     img.src = src
@@ -172,6 +182,7 @@ export default function HomePage() {
       setBgIdx(Math.min(2, swatchCount - 1))
       notify('Fresh palette, just for you.')
       URL.revokeObjectURL(url)
+      scrollToPalette()
     }
     img.onerror = () => notify('That image could not be opened. Try another one.')
     img.src = url
@@ -323,49 +334,8 @@ export default function HomePage() {
     }
   }
 
-  async function downloadWebp() {
-    if (!imageSrc) {
-      notify('Drop an image first.')
-      return
-    }
-    try {
-      const img = await loadSourceImage()
-      const canvas = document.createElement('canvas')
-      canvas.width = img.naturalWidth || 1
-      canvas.height = img.naturalHeight || 1
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('canvas')
-      ctx.drawImage(img, 0, 0)
-      const blob: Blob | null = await new Promise((resolve) =>
-        canvas.toBlob((b) => resolve(b), 'image/webp', 0.92),
-      )
-      if (!blob) {
-        // Fallback: some browsers may not encode webp — use data URL
-        const dataUrl = canvas.toDataURL('image/webp', 0.92)
-        if (!dataUrl.startsWith('data:image/webp')) {
-          notify('WebP is not supported in this browser. Try Chrome or Edge.')
-          return
-        }
-        const a = document.createElement('a')
-        a.href = dataUrl
-        a.download = `${fileBaseName()}.webp`
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-        notify('WebP download started.')
-        return
-      }
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = `${fileBaseName()}.webp`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.setTimeout(() => URL.revokeObjectURL(a.href), 1500)
-      notify('WebP download started.')
-    } catch {
-      notify('Could not convert this image to WebP.')
-    }
+  function goToPixelshift() {
+    window.location.assign('https://pixelshift.acetix.xyz/')
   }
 
   async function openImbb() {
@@ -509,8 +479,8 @@ export default function HomePage() {
                 <button
                   type="button"
                   className="btn image-tool-secondary"
-                  title="Download this image as WebP"
-                  onClick={() => void downloadWebp()}
+                  title="Open Pixelshift WebP tools"
+                  onClick={goToPixelshift}
                 >
                   Convert WebP <ArrowUpRight size={13} />
                 </button>
@@ -558,7 +528,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="palette-title-row">
+            <div id="palette-colours" className="palette-title-row">
               <div>
                 <div className="section-kicker">YOUR COLOURS</div>
                 <h2>Extracted color palette</h2>
@@ -926,6 +896,7 @@ export default function HomePage() {
       </main>
 
       <SiteFooter />
+      <ScrollTopButton />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
   )
