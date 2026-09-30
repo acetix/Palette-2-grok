@@ -1,16 +1,16 @@
-# Palette by Acetix — https://paletto.acetix.xyz
+# https://paletto.acetix.xyz — Palette by Acetix
 User-agent: *
 Allow: /
-Allow: /templates
-Allow: /calordetel
-Allow: /privacy
+
+# Prefer clean URLs (query-string palette shares are duplicates)
+Disallow: /*?palette=
+Disallow: /*?s=
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
 Allow: /images/
 Allow: /favicon.svg
-Allow: /sitemap.xml
-
-# Block noisy SPA query-only noise if crawled
-Disallow: /*?*palette=
-Disallow: /*?*s=
 
 Sitemap: https://paletto.acetix.xyz/sitemap.xml
-Host: https://paletto.acetix.xyz
