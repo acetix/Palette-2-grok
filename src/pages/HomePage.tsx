@@ -20,6 +20,7 @@ import {
   Upload,
 } from 'lucide-react'
 import {SiteFooter, Toast, TopNav} from '../components/Layout'
+import { Seo } from '../components/Seo'
 import {
   contrastRatio,
   DEFAULT_PALETTE,
@@ -361,7 +362,13 @@ export default function HomePage() {
   }
 
   return (
-    <div className="app-shell page-enter">
+    <>
+      <Seo
+        title="Palette — Find the feeling in every colour | Acetix"
+        description="Extract beautiful colour palettes from any image. Fine-tune in OKLCH, check WCAG contrast, export CSS/SCSS/Tailwind tokens. Free, private, browser-based."
+        path="/"
+      />
+      <div className="app-shell page-enter">
       <TopNav
         right={
           <Link className="btn btn-dark header-button c-templates-glow" to="/templates">
@@ -898,5 +905,6 @@ export default function HomePage() {
       <SiteFooter />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
+    </>
   )
 }

@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ScrollTopButton } from './components/Layout'
+import { SitewideJsonLd } from './components/Seo'
 import HomePage from './pages/HomePage'
 import TemplatesPage from './pages/TemplatesPage'
 import CalordetelPage from './pages/CalordetelPage'
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SitewideJsonLd />
       <ScrollTopButton />
     </BrowserRouter>
   )

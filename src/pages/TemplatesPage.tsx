@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Bookmark, BookmarkCheck, Search, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import {SiteFooter, Toast, TopNav} from '../components/Layout'
+import { Seo } from '../components/Seo'
 import {
   generateGradient,
   gradientCssValue,
@@ -313,7 +314,13 @@ export default function TemplatesPage() {
   const gradCount = filtered.filter((i) => i.kind === 'gradient').length
 
   return (
-    <div className="templates-page page-enter">
+    <>
+      <Seo
+        title="Colour Templates & Gradients — Palette by Acetix"
+        description="Browse infinite colour templates and gradients. Filter by mood, save favourites, open in Palette or Calordetel CSS studio."
+        path="/templates"
+      />
+      <div className="templates-page page-enter">
       <TopNav
         right={
           <div className="nav-actions">
@@ -614,5 +621,6 @@ export default function TemplatesPage() {
       <SiteFooter />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
+    </>
   )
 }

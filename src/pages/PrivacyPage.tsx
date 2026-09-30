@@ -2,10 +2,17 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import { BrandMark } from '../components/Brand'
 import {SiteFooter} from '../components/Layout'
+import { Seo } from '../components/Seo'
 
 export default function PrivacyPage() {
   return (
-    <div className="privacy-page">
+    <>
+      <Seo
+        title="Privacy — Palette by Acetix"
+        description="Privacy policy for Palette by Acetix. Images and palettes stay on your device. No accounts required."
+        path="/privacy"
+      />
+      <div className="privacy-page">
       <nav className="navbar topbar">
         <div className="container-fluid app-container px-0">
           <BrandMark />
@@ -81,5 +88,6 @@ export default function PrivacyPage() {
       </main>
       <SiteFooter />
     </div>
+    </>
   )
 }

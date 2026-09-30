@@ -17,6 +17,7 @@ import {
   Wand2,
 } from 'lucide-react'
 import {SiteFooter, Toast, TopNav} from '../components/Layout'
+import { Seo } from '../components/Seo'
 import {
   decodeCalorState,
   encodeCalorState,
@@ -415,7 +416,13 @@ export default function CalordetelPage() {
   const accent = mode === 'palette' ? colors[1] || colors[0] : stops[0]?.color || '#e65f39'
 
   return (
-    <div className="calor-page page-enter">
+    <>
+      <Seo
+        title="Calordetel — CSS colour & gradient studio | Palette"
+        description="Customize colour templates and gradients with live CSS. Harmony tools, multi-format export, and shareable design links."
+        path="/calordetel"
+      />
+      <div className="calor-page page-enter">
       <TopNav
         right={
           <div className="nav-actions">
@@ -792,5 +799,6 @@ export default function CalordetelPage() {
       <SiteFooter />
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
+    </>
   )
 }

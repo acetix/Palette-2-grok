@@ -1,4 +1,16 @@
+# Palette by Acetix — https://paletto.acetix.xyz
 User-agent: *
 Allow: /
+Allow: /templates
+Allow: /calordetel
+Allow: /privacy
+Allow: /images/
+Allow: /favicon.svg
+Allow: /sitemap.xml
+
+# Block noisy SPA query-only noise if crawled
+Disallow: /*?*palette=
+Disallow: /*?*s=
 
 Sitemap: https://paletto.acetix.xyz/sitemap.xml
+Host: https://paletto.acetix.xyz
